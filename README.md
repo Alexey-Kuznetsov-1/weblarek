@@ -98,3 +98,254 @@ Presenter - презентер содержит основную логику п
 `emit<T extends object>(event: string, data?: T): void` - инициализация события. При вызове события в метод передается название события и объект с данными, который будет использован как аргумент для вызова обработчика.  
 `trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void` - возвращает функцию, при вызове которой инициализируется требуемое в параметрах событие с передачей в него данных из второго параметра.
 
+##### Данные
+В приложении используются следующие интерфейсы данных:
+
+Интерфейс Product (Товар)
+
+interface Product {
+    id: string;
+    title: string;
+    description: string;
+    image: string;
+    category: 'софт-скил' | 'хард-скил' | 'кнопка' | 'дополнительное' | 'другое';
+    price: number | null;
+}
+
+Интерфейс BasketItem (Элемент корзины)
+
+interface BasketItem {
+    product: Product;
+    quantity: number;
+}
+
+Интерфейс OrderForm (Данные покупателя)
+
+type PaymentMethod = 'card' | 'cash' | '';
+interface OrderForm {
+    payment: PaymentMethod;
+    address: string;
+    email: string;
+    phone: string;
+}
+
+Типы для коммуникации с сервером
+// Ответ от сервера на запрос списка товаров
+export interface ProductListResponse {
+    total: number;
+    items: Product[];
+}
+
+// Запрос на создание заказа
+export interface OrderRequest {
+    payment: string;    // Способ оплаты
+    email: string;      // Email покупателя
+    phone: string;      // Телефон покупателя
+    address: string;    // Адрес доставки
+    total: number;      // Общая сумма заказа
+    items: string[];    // Массив ID товаров
+}
+
+// Ответ от сервера на создание заказа
+export interface OrderResponse {
+    id: string;         // ID созданного заказа
+    total: number;      // Подтвержденная сумма заказа
+}
+
+##### Модели данных
+
+Класс Catalog (Каталог товаров)
+Назначение: Отвечает за хранение и управление списком товаров, доступных для покупки.
+
+Конструктор:
+constructor()
+Конструктор не принимает параметров, инициализирует пустой массив товаров.
+
+Поля класса:
+private items: Product[] - массив всех товаров каталога
+private selectedItem: Product | null - товар, выбранный для подробного отображения
+
+Методы класса:
+setItems(items: Product[]): void
+Описание: Сохраняет массив товаров, полученный в параметрах
+Параметр: items: Product[] - массив объектов типа Product
+Возвращает: void
+getItems(): Product[]
+Описание: Возвращает массив всех товаров из каталога
+Возвращает: Product[] - массив объектов типа Product
+setPreview(item: Product): void
+Описание: Сохраняет товар для подробного отображения
+Параметр: item: Product - объект типа Product
+Возвращает: void
+getPreview(): Product | null
+Описание: Возвращает товар, выбранный для подробного отображения
+Возвращает: Product | null - объект типа Product или null
+loadProducts(): Promise<void>
+Описание: Загружает товары с сервера API
+Возвращает: Promise<void> - Promise, который разрешается после загрузки
+getProductById(id: string): Product | undefined
+Описание: Находит товар по его идентификатору
+Параметр: id: string - строковый идентификатор товара
+Возвращает: Product | undefined - объект типа Product или undefined если не найден
+clearPreview(): void
+Описание: Очищает выбранный товар
+Возвращает: void
+
+Класс Basket (Корзина)
+Назначение: Отвечает за хранение и управление товарами, выбранными пользователем для покупки.
+
+Конструктор:
+constructor()
+Конструктор не принимает параметров, инициализирует пустую корзину.
+
+Поля класса:
+private items: BasketItem[] - массив товаров в корзине
+
+Методы класса:
+addItem(product: Product): void
+Описание: Добавляет товар в корзину. Если товар уже есть в корзине, увеличивает его количество.
+Параметр: product: Product - объект типа Product
+Возвращает: void
+removeItem(productId: string): void
+Описание: Удаляет товар из корзины по его идентификатору
+Параметр: productId: string - строковый идентификатор товара
+Возвращает: void
+getCount(): number
+Описание: Возвращает общее количество товаров в корзине (сумма количеств всех товаров)
+Возвращает: number - общее количество товаров
+getItems(): BasketItem[]
+Описание: Возвращает массив товаров, которые находятся в корзине
+Возвращает: BasketItem[] - массив объектов типа BasketItem
+getTotal(): number
+Описание: Рассчитывает общую стоимость всех товаров в корзине
+Возвращает: number - сумма в синапсах
+hasItem(productId: string): boolean
+Описание: Проверяет наличие товара в корзине по его идентификатору
+Параметр: productId: string - строковый идентификатор товара
+Возвращает: boolean - true если товар есть в корзине
+clear(): void
+Описание: Очищает корзину (удаляет все товары)
+Возвращает: void
+updateQuantity(productId: string, quantity: number): void
+Описание: Изменяет количество конкретного товара в корзине. Если количество ≤ 0, удаляет товар.
+Параметры: productId: string - идентификатор товара, quantity: number - новое количество
+Возвращает: void
+
+Класс Order (Покупатель)
+Назначение: Отвечает за хранение и валидацию данных покупателя при оформлении заказа.
+
+Конструктор:
+constructor()
+Конструктор не принимает параметров, инициализирует пустые поля данных покупателя.
+
+Поля класса:
+private data: OrderForm - объект с данными покупателя
+Методы класса:
+setData(data: Partial<OrderForm>): void
+Описание: Сохраняет данные покупателя. Позволяет сохранить только часть полей, не удаляя другие.
+Параметр: data: Partial<OrderForm> - объект с частичными данными типа OrderForm
+Возвращает: void
+getData(): OrderForm
+Описание: Возвращает все данные покупателя
+Возвращает: OrderForm - объект с данными покупателя
+validate(): boolean
+Описание: Проверяет валидность всех полей покупателя. Проверяет, что все поля заполнены и email имеет правильный формат.
+Возвращает: boolean - true если все поля валидны
+clear(): void
+Описание: Очищает все данные покупателя
+Возвращает: void
+private isValidEmail(email: string): boolean
+Описание: Проверяет валидность email с помощью регулярного выражения
+Параметр: email: string - email для проверки
+Возвращает: boolean - true если email валиден
+
+Класс AppState (Главное состояние приложения)
+Назначение: Координирует работу всех моделей данных и управляет состоянием приложения.
+
+Конструктор:
+constructor()
+Создает экземпляры всех моделей данных.
+
+Поля класса:
+catalog: Catalog - модель каталога товаров
+basket: Basket - модель корзины
+order: Order - модель данных покупателя
+
+Методы класса:
+async init(): Promise<void>
+Описание: Инициализирует приложение, загружая товары с сервера
+
+Возвращает: Promise<void>
+Экспорт:
+export const appState = new AppState() - глобальный экземпляр состояния приложения
+
+Слой коммуникации
+Класс ApiClient
+Назначение: Реализует интерфейс IApi для выполнения HTTP-запросов к серверу. Использует Fetch API для отправки запросов.
+
+Конструктор:
+constructor(baseUrl: string, options: RequestInit = {})
+baseUrl: string - базовый URL сервера (например: https://larek-api.nomoreparties.co/api/weblarek)
+
+options: RequestInit - опциональные настройки запросов (заголовки и т.д.)
+
+Методы класса:
+get<T extends object>(uri: string): Promise<T>
+Выполняет GET-запрос на указанный endpoint
+Параметр: uri: string - endpoint для запроса (например: /product/)
+Возвращает: Promise<T> - промис с данными ответа
+Пример: apiClient.get<ProductListResponse>('/product/')
+post<T extends object>(uri: string, data: object, method?: ApiPostMethods): Promise<T>
+Выполняет POST/PUT/DELETE запрос с данными
+Параметры:
+uri: string - endpoint для запроса
+data: object - данные для отправки
+method: ApiPostMethods - метод запроса (по умолчанию 'POST')
+Возвращает: Promise<T> - промис с данными ответа
+
+Класс WebLarekAPI
+Назначение: Предоставляет высокоуровневый API для работы с сервером WebLarek. Инкапсулирует бизнес-логику работы с endpoints.
+Конструктор:
+constructor(api: IApi)
+api: IApi - экземпляр класса, реализующего интерфейс IApi
+
+Методы класса:
+async getProductList(): Promise<Product[]>
+Получает список товаров с сервера
+Возвращает: Promise<Product[]> - массив товаров
+Внутренняя реализация: GET запрос на /product/
+async createOrder(orderData: OrderRequest): Promise<OrderResponse>
+Отправляет заказ на сервер
+Параметр: orderData: OrderRequest - данные заказа
+Возвращает: Promise<OrderResponse> - ответ сервера с ID и суммой заказа
+Внутренняя реализация: POST запрос на /order/
+
+##### Примеры использования
+
+Получение товаров с сервера:
+const apiClient = new ApiClient(API_URL);
+const webLarekAPI = new WebLarekAPI(apiClient);
+const catalog = new Catalog();
+const products = await webLarekAPI.getProductList();
+catalog.setItems(products);
+
+Работа с корзиной:
+const basket = new Basket();
+const product = catalog.getItems()[0];
+basket.addItem(product); // Добавить товар
+basket.addItem(product); // Добавить тот же товар еще раз
+const total = basket.getTotal(); // Получить сумму
+const items = basket.getItems(); // Получить все товары
+
+Валидация заказа:
+const order = new Order();
+order.setData({
+    email: 'test@example.com',
+    phone: '+79991234567',
+    address: 'Москва',
+    payment: 'card'
+});
+const isValid = order.validate(); // Проверить данные
+
+##### Заключение
+Проект реализует многослойную архитектуру с четким разделением ответственности. Модели данных независимы от представления и слоя коммуникации, что обеспечивает гибкость и масштабируемость приложения. Все компоненты протестированы и готовы к интеграции с UI слоем.

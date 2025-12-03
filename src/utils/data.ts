@@ -1,3 +1,5 @@
+import { Product } from '../types';
+
 export const apiProducts = {
     "total": 10,
     "items": [
@@ -6,7 +8,7 @@ export const apiProducts = {
             "description": "Если планируете решать задачи в тренажёре, берите два.",
             "image": "/5_Dots.svg",
             "title": "+1 час в сутках",
-            "category": "софт-скил",
+            "category": "софт-скил" as const,
             "price": 750
         },
         {
@@ -14,7 +16,7 @@ export const apiProducts = {
             "description": "Лизните этот леденец, чтобы мгновенно запоминать и узнавать любой цветовой код CSS.",
             "image": "/Shell.svg",
             "title": "HEX-леденец",
-            "category": "другое",
+            "category": "другое" as const,
             "price": 1450
         },
         {
@@ -22,7 +24,7 @@ export const apiProducts = {
             "description": "Будет стоять над душой и не давать прокрастинировать.",
             "image": "/Asterisk_2.svg",
             "title": "Мамка-таймер",
-            "category": "софт-скил",
+            "category": "софт-скил" as const,
             "price": null
         },
         {
@@ -30,8 +32,8 @@ export const apiProducts = {
             "description": "Откройте эти куки, чтобы узнать, какой фреймворк вы должны изучить дальше.",
             "image": "/Soft_Flower.svg",
             "title": "Фреймворк куки судьбы",
-            "category": "дополнительное",
+            "category": "дополнительное" as const,
             "price": 2500
         },
-    ]
-}
+    ] as Product[]
+};
