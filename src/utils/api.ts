@@ -1,11 +1,5 @@
 import { API_URL } from './constants';
-import { Product } from '../models/product';
-
-// Тип ответа от сервера для списка товаров
-export interface ProductListResponse {
-    total: number;
-    items: Product[];
-}
+import { ProductListResponse, OrderRequest } from '../types';
 
 /**
  * Получить список товаров с сервера
@@ -14,29 +8,16 @@ export async function getProductList(): Promise<ProductListResponse> {
     const response = await fetch(`${API_URL}/product/`);
     
     if (!response.ok) {
-        throw new Error(`Ошибка API: ${response.status}`);
+        throw new Error(`Ошибка HTTP: ${response.status}`);
     }
     
     return response.json();
 }
 
 /**
- * Получить информацию о конкретном товаре
+ * Создать заказ на сервере
  */
-export async function getProductItem(id: string): Promise<Product> {
-    const response = await fetch(`${API_URL}/product/${id}`);
-    
-    if (!response.ok) {
-        throw new Error(`Ошибка API: ${response.status}`);
-    }
-    
-    return response.json();
-}
-
-/**
- * Оформить заказ
- */
-export async function createOrder(orderData: any): Promise<any> {
+export async function createOrder(orderData: OrderRequest): Promise<{ id: string; total: number }> {
     const response = await fetch(`${API_URL}/order`, {
         method: 'POST',
         headers: {
@@ -46,7 +27,7 @@ export async function createOrder(orderData: any): Promise<any> {
     });
     
     if (!response.ok) {
-        throw new Error(`Ошибка API: ${response.status}`);
+        throw new Error(`Ошибка HTTP: ${response.status}`);
     }
     
     return response.json();

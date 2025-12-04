@@ -1,11 +1,10 @@
 // src/main.ts
-import { Catalog } from './data/catalog';
-import { Basket } from './data/basket';
-import { Order } from './data/order';
-import { ApiClient } from './api/api-client';
-import { WebLarekAPI } from './api/web-larek-api';
+import { Catalog } from './components/models/catalog';
+import { Basket } from './components/models/basket';
+import { Order } from './components/models/order';
 import { apiProducts } from './utils/data';
 import { API_URL } from './utils/constants';
+import { getProductList } from './utils/api';
 import './scss/styles.scss';
 
 console.log('🚀 WebLarek запущен');
@@ -73,8 +72,8 @@ async function main() {
         basket.addItem(itemsFromCatalog[0]);
         console.log(`✅ Метод addItem() вызван для товара: "${itemsFromCatalog[0].title}"`);
         
-        basket.addItem(itemsFromCatalog[0]); // Второй раз тот же товар
-        console.log(`✅ Тот же товар добавлен повторно`);
+        basket.addItem(itemsFromCatalog[0]); // Пытаемся добавить тот же товар еще раз
+        console.log(`✅ Тот же товар добавлен повторно (не должен добавиться)`);
         
         basket.addItem(itemsFromCatalog[1]);
         console.log(`✅ Метод addItem() вызван для товара: "${itemsFromCatalog[1].title}"`);
@@ -87,10 +86,8 @@ async function main() {
         console.log(`🔍 Товар ${itemsFromCatalog[0].id} в корзине?`, basket.hasItem(itemsFromCatalog[0].id));
         console.log(`🔍 Товар несуществующий в корзине?`, basket.hasItem('non-existent-id'));
         
-        // Изменяем количество
-        basket.updateQuantity(itemsFromCatalog[0].id, 5);
-        console.log(`✅ Метод updateQuantity() вызван. Установлено количество: 5 для товара ${itemsFromCatalog[0].id}`);
-        console.log(`📊 Новое количество товаров: ${basket.getCount()}`);
+        // Получаем ID товаров для отправки на сервер
+        console.log(`🔍 ID товаров для отправки заказа:`, basket.getItemIds());
         
         // Удаляем товар
         basket.removeItem(itemsFromCatalog[1].id);
@@ -134,10 +131,11 @@ async function main() {
     console.log('✅ Метод setData() вызван со всеми данными');
     console.log('📋 Все данные заказа:', order.getData());
     
-    // Проверяем валидацию (должно быть true)
-    const isValid = order.validate();
-    console.log('✅ Метод validate() вызван');
-    console.log(`🔍 Валидны ли данные? ${isValid ? 'ДА ✓' : 'НЕТ ✗'}`);
+    // Проверяем валидацию с возвратом объекта ошибок
+    const errors = order.validate();
+    console.log('✅ Метод validate() вызван (возвращает объект ошибок)');
+    console.log(`🔍 Ошибки валидации:`, errors);
+    console.log(`🔍 Валидны ли данные? ${order.isValid() ? 'ДА ✓' : 'НЕТ ✗'}`);
     
     // Создаем невалидный заказ для теста
     const invalidOrder = new Order();
@@ -149,7 +147,9 @@ async function main() {
     });
     console.log('\n🔴 ТЕСТ НЕВАЛИДНЫХ ДАННЫХ:');
     console.log('📋 Невалидные данные:', invalidOrder.getData());
-    console.log(`🔍 Валидны ли неполные данные? ${invalidOrder.validate() ? 'ДА' : 'НЕТ ✗'}`);
+    const invalidErrors = invalidOrder.validate();
+    console.log(`🔍 Ошибки валидации:`, invalidErrors);
+    console.log(`🔍 Валидны ли данные? ${invalidOrder.isValid() ? 'ДА' : 'НЕТ ✗'}`);
     
     // Очищаем данные
     order.clear();
@@ -163,22 +163,19 @@ async function main() {
     console.log('\n🌐 ПОДКЛЮЧЕНИЕ К СЕРВЕРУ');
     console.log('=========================');
     
+    console.log('API_URL:', API_URL);
+    
+    // Создаем новый каталог для реальных данных
+    const realCatalog = new Catalog();
+    
+    console.log('🔄 Загрузка товаров с сервера...');
+    
     try {
-        console.log('API_URL:', API_URL);
+        // Получаем реальные товары с сервера через функцию из api.ts
+        const response = await getProductList();
+        const realProducts = response.items;
         
-        // Создаем клиент API
-        const apiClient = new ApiClient(API_URL);
-        const webLarekAPI = new WebLarekAPI(apiClient);
-        
-        // Создаем новый каталог для реальных данных
-        const realCatalog = new Catalog();
-        
-        console.log('🔄 Загрузка товаров с сервера...');
-        
-        // Получаем реальные товары с сервера
-        const realProducts = await webLarekAPI.getProductList();
-        
-        // Сохраняем в каталог
+        // Передаем данные в модель (как и требовалось в ревью)
         realCatalog.setItems(realProducts);
         
         console.log(`✅ Загружено ${realProducts.length} товаров с сервера`);
@@ -197,18 +194,21 @@ async function main() {
             });
         }
         
+        console.log('\n✅ ПРОЕКТ ГОТОВ К РАБОТЕ!');
+        console.log('=======================================');
+        console.log('Все модели данных работают корректно.');
+        console.log('Сервер подключен успешно.');
+        console.log('Товары загружены и сохранены в каталог.');
+        console.log('Проект готов к следующему этапу — созданию UI компонентов.');
+        
     } catch (error) {
+        // Обработка ошибок оставили внутри main
         console.error('❌ Ошибка загрузки товаров с сервера:', error);
+        console.error('Проверьте:');
+        console.error('1. Запущен ли сервер на ' + API_URL);
+        console.error('2. Корректность адреса API');
+        console.error('3. Наличие CORS заголовков на сервере');
     }
-    
-    console.log('\n✅ ПРОЕКТ ГОТОВ К РАБОТЕ!');
-    console.log('=======================================');
-    console.log('Все модели данных работают корректно.');
-    console.log('Сервер подключен успешно.');
-    console.log('Товары загружены и сохранены в каталог.');
-    console.log('Проект готов к следующему этапу — созданию UI компонентов.');
 }
 
-main().catch(error => {
-    console.error('❌ Критическая ошибка при запуске приложения:', error);
-});
+main();

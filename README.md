@@ -102,7 +102,7 @@ Presenter - презентер содержит основную логику п
 В приложении используются следующие интерфейсы данных:
 
 Интерфейс Product (Товар)
-
+typescript
 interface Product {
     id: string;
     title: string;
@@ -111,241 +111,268 @@ interface Product {
     category: 'софт-скил' | 'хард-скил' | 'кнопка' | 'дополнительное' | 'другое';
     price: number | null;
 }
-
-Интерфейс BasketItem (Элемент корзины)
-
-interface BasketItem {
-    product: Product;
-    quantity: number;
-}
-
 Интерфейс OrderForm (Данные покупателя)
-
+typescript
 type PaymentMethod = 'card' | 'cash' | '';
+
 interface OrderForm {
     payment: PaymentMethod;
     address: string;
     email: string;
     phone: string;
 }
-
 Типы для коммуникации с сервером
+typescript
 // Ответ от сервера на запрос списка товаров
-export interface ProductListResponse {
+interface ProductListResponse {
     total: number;
     items: Product[];
 }
 
-// Запрос на создание заказа
-export interface OrderRequest {
-    payment: string;    // Способ оплаты
-    email: string;      // Email покупателя
-    phone: string;      // Телефон покупателя
-    address: string;    // Адрес доставки
+// Данные для отправки заказа на сервер (расширяет OrderForm)
+interface OrderRequest extends OrderForm {
     total: number;      // Общая сумма заказа
     items: string[];    // Массив ID товаров
 }
 
 // Ответ от сервера на создание заказа
-export interface OrderResponse {
+interface OrderResponse {
     id: string;         // ID созданного заказа
     total: number;      // Подтвержденная сумма заказа
 }
-
 ##### Модели данных
-
 Класс Catalog (Каталог товаров)
 Назначение: Отвечает за хранение и управление списком товаров, доступных для покупки.
 
 Конструктор:
+
+typescript
 constructor()
 Конструктор не принимает параметров, инициализирует пустой массив товаров.
 
 Поля класса:
+
 private items: Product[] - массив всех товаров каталога
+
 private selectedItem: Product | null - товар, выбранный для подробного отображения
 
 Методы класса:
+
 setItems(items: Product[]): void
 Описание: Сохраняет массив товаров, полученный в параметрах
 Параметр: items: Product[] - массив объектов типа Product
 Возвращает: void
+
 getItems(): Product[]
 Описание: Возвращает массив всех товаров из каталога
 Возвращает: Product[] - массив объектов типа Product
+
 setPreview(item: Product): void
 Описание: Сохраняет товар для подробного отображения
 Параметр: item: Product - объект типа Product
 Возвращает: void
+
 getPreview(): Product | null
 Описание: Возвращает товар, выбранный для подробного отображения
 Возвращает: Product | null - объект типа Product или null
-loadProducts(): Promise<void>
-Описание: Загружает товары с сервера API
-Возвращает: Promise<void> - Promise, который разрешается после загрузки
+
 getProductById(id: string): Product | undefined
 Описание: Находит товар по его идентификатору
 Параметр: id: string - строковый идентификатор товара
 Возвращает: Product | undefined - объект типа Product или undefined если не найден
+
 clearPreview(): void
 Описание: Очищает выбранный товар
 Возвращает: void
 
 Класс Basket (Корзина)
-Назначение: Отвечает за хранение и управление товарами, выбранными пользователем для покупки.
+Назначение: Отвечает за хранение и управление товарами, выбранными пользователем для покупки. Каждый товар может быть добавлен только в одном экземпляре.
 
 Конструктор:
+
+typescript
 constructor()
 Конструктор не принимает параметров, инициализирует пустую корзину.
 
 Поля класса:
-private items: BasketItem[] - массив товаров в корзине
+
+private items: Product[] - массив товаров в корзине
 
 Методы класса:
+
 addItem(product: Product): void
-Описание: Добавляет товар в корзину. Если товар уже есть в корзине, увеличивает его количество.
+Описание: Добавляет товар в корзину. Если товар уже есть в корзине, не добавляет его повторно.
 Параметр: product: Product - объект типа Product
 Возвращает: void
+
 removeItem(productId: string): void
 Описание: Удаляет товар из корзины по его идентификатору
 Параметр: productId: string - строковый идентификатор товара
 Возвращает: void
+
 getCount(): number
-Описание: Возвращает общее количество товаров в корзине (сумма количеств всех товаров)
-Возвращает: number - общее количество товаров
-getItems(): BasketItem[]
+Описание: Возвращает количество уникальных товаров в корзине
+Возвращает: number - количество товаров (длина массива)
+
+getItems(): Product[]
 Описание: Возвращает массив товаров, которые находятся в корзине
-Возвращает: BasketItem[] - массив объектов типа BasketItem
+Возвращает: Product[] - массив объектов типа Product
+
 getTotal(): number
 Описание: Рассчитывает общую стоимость всех товаров в корзине
 Возвращает: number - сумма в синапсах
+
 hasItem(productId: string): boolean
 Описание: Проверяет наличие товара в корзине по его идентификатору
 Параметр: productId: string - строковый идентификатор товара
 Возвращает: boolean - true если товар есть в корзине
+
+getItemIds(): string[]
+Описание: Возвращает массив ID товаров для отправки на сервер при оформлении заказа
+Возвращает: string[] - массив идентификаторов товаров
+
 clear(): void
 Описание: Очищает корзину (удаляет все товары)
-Возвращает: void
-updateQuantity(productId: string, quantity: number): void
-Описание: Изменяет количество конкретного товара в корзине. Если количество ≤ 0, удаляет товар.
-Параметры: productId: string - идентификатор товара, quantity: number - новое количество
 Возвращает: void
 
 Класс Order (Покупатель)
 Назначение: Отвечает за хранение и валидацию данных покупателя при оформлении заказа.
 
 Конструктор:
+
+typescript
 constructor()
 Конструктор не принимает параметров, инициализирует пустые поля данных покупателя.
 
 Поля класса:
+
 private data: OrderForm - объект с данными покупателя
+
 Методы класса:
+
 setData(data: Partial<OrderForm>): void
 Описание: Сохраняет данные покупателя. Позволяет сохранить только часть полей, не удаляя другие.
 Параметр: data: Partial<OrderForm> - объект с частичными данными типа OrderForm
 Возвращает: void
+
 getData(): OrderForm
 Описание: Возвращает все данные покупателя
 Возвращает: OrderForm - объект с данными покупателя
-validate(): boolean
-Описание: Проверяет валидность всех полей покупателя. Проверяет, что все поля заполнены и email имеет правильный формат.
-Возвращает: boolean - true если все поля валидны
+
+validate(): Record<string, string>
+Описание: Проверяет валидность полей покупателя и возвращает объект с ошибками.
+Возвращает: Record<string, string> - объект, где ключи - названия полей, значения - тексты ошибок. Если поле валидно, его нет в объекте.
+
+isValid(): boolean
+Описание: Проверяет, есть ли ошибки валидации
+Возвращает: boolean - true если ошибок нет (все поля валидны)
+
 clear(): void
 Описание: Очищает все данные покупателя
 Возвращает: void
+
 private isValidEmail(email: string): boolean
 Описание: Проверяет валидность email с помощью регулярного выражения
 Параметр: email: string - email для проверки
 Возвращает: boolean - true если email валиден
 
-Класс AppState (Главное состояние приложения)
-Назначение: Координирует работу всех моделей данных и управляет состоянием приложения.
-
-Конструктор:
-constructor()
-Создает экземпляры всех моделей данных.
-
-Поля класса:
-catalog: Catalog - модель каталога товаров
-basket: Basket - модель корзины
-order: Order - модель данных покупателя
-
-Методы класса:
-async init(): Promise<void>
-Описание: Инициализирует приложение, загружая товары с сервера
-
-Возвращает: Promise<void>
-Экспорт:
-export const appState = new AppState() - глобальный экземпляр состояния приложения
-
 Слой коммуникации
-Класс ApiClient
-Назначение: Реализует интерфейс IApi для выполнения HTTP-запросов к серверу. Использует Fetch API для отправки запросов.
+Для работы с сервером используются функции из src/utils/api.ts:
 
-Конструктор:
-constructor(baseUrl: string, options: RequestInit = {})
-baseUrl: string - базовый URL сервера (например: https://larek-api.nomoreparties.co/api/weblarek)
+Функция getProductList()
 
-options: RequestInit - опциональные настройки запросов (заголовки и т.д.)
+typescript
+async function getProductList(): Promise<ProductListResponse>
+Описание: Получает список товаров с сервера API
+Возвращает: Promise<ProductListResponse> - промис с данными от сервера
+Эндпоинт: GET /product/
 
-Методы класса:
-get<T extends object>(uri: string): Promise<T>
-Выполняет GET-запрос на указанный endpoint
-Параметр: uri: string - endpoint для запроса (например: /product/)
-Возвращает: Promise<T> - промис с данными ответа
-Пример: apiClient.get<ProductListResponse>('/product/')
-post<T extends object>(uri: string, data: object, method?: ApiPostMethods): Promise<T>
-Выполняет POST/PUT/DELETE запрос с данными
-Параметры:
-uri: string - endpoint для запроса
-data: object - данные для отправки
-method: ApiPostMethods - метод запроса (по умолчанию 'POST')
-Возвращает: Promise<T> - промис с данными ответа
+Функция createOrder()
 
-Класс WebLarekAPI
-Назначение: Предоставляет высокоуровневый API для работы с сервером WebLarek. Инкапсулирует бизнес-логику работы с endpoints.
-Конструктор:
-constructor(api: IApi)
-api: IApi - экземпляр класса, реализующего интерфейс IApi
+typescript
+async function createOrder(orderData: OrderRequest): Promise<{ id: string; total: number }>
+Описание: Отправляет данные заказа на сервер
+Параметры: orderData: OrderRequest - объект с данными заказа
+Возвращает: Promise<{ id: string; total: number }> - промис с ответом сервера
+Эндпоинт: POST /order/
 
-Методы класса:
-async getProductList(): Promise<Product[]>
-Получает список товаров с сервера
-Возвращает: Promise<Product[]> - массив товаров
-Внутренняя реализация: GET запрос на /product/
-async createOrder(orderData: OrderRequest): Promise<OrderResponse>
-Отправляет заказ на сервер
-Параметр: orderData: OrderRequest - данные заказа
-Возвращает: Promise<OrderResponse> - ответ сервера с ID и суммой заказа
-Внутренняя реализация: POST запрос на /order/
+Точка входа (main.ts)
+Файл src/main.ts является точкой входа приложения и выполняет следующие функции:
 
-##### Примеры использования
+Инициализирует экземпляры всех моделей данных
 
-Получение товаров с сервера:
-const apiClient = new ApiClient(API_URL);
-const webLarekAPI = new WebLarekAPI(apiClient);
+Тестирует работу методов моделей с тестовыми данными
+
+Выполняет запрос к серверу для получения реальных данных о товарах
+
+Передает полученные данные в модели
+
+Обеспечивает связь между API и моделями данных
+
+Примеры использования
+Получение товаров с сервера и сохранение в каталог:
+
+typescript
+import { getProductList } from './utils/api';
+import { Catalog } from './components/models/catalog';
+
 const catalog = new Catalog();
-const products = await webLarekAPI.getProductList();
-catalog.setItems(products);
-
+const response = await getProductList();
+catalog.setItems(response.items);
 Работа с корзиной:
+
+typescript
+import { Basket } from './components/models/basket';
+import { Catalog } from './components/models/catalog';
+
+const catalog = new Catalog();
 const basket = new Basket();
+
+// Загружаем товары в каталог
 const product = catalog.getItems()[0];
-basket.addItem(product); // Добавить товар
-basket.addItem(product); // Добавить тот же товар еще раз
+basket.addItem(product); // Добавить товар (добавится)
+basket.addItem(product); // Попытка добавить тот же товар (не добавится)
+const count = basket.getCount(); // Получить количество товаров (1)
 const total = basket.getTotal(); // Получить сумму
 const items = basket.getItems(); // Получить все товары
-
+const itemIds = basket.getItemIds(); // Получить ID товаров для заказа
 Валидация заказа:
+
+typescript
+import { Order } from './components/models/order';
+
 const order = new Order();
 order.setData({
     email: 'test@example.com',
     phone: '+79991234567',
-    address: 'Москва',
+    address: 'Москва, ул. Тестовая, д. 1',
     payment: 'card'
 });
-const isValid = order.validate(); // Проверить данные
+
+const errors = order.validate(); // Получить объект ошибок (пустой объект если нет ошибок)
+const isValid = order.isValid(); // Проверить валидность (true)
+Создание заказа:
+
+typescript
+import { createOrder } from './utils/api';
+import { Basket } from './components/models/basket';
+import { Order } from './components/models/order';
+
+const basket = new Basket();
+const order = new Order();
+
+// ... добавление товаров в корзину и заполнение данных покупателя
+
+if (order.isValid() && basket.getCount() > 0) {
+    const orderData = {
+        ...order.getData(),
+        total: basket.getTotal(),
+        items: basket.getItemIds()
+    };
+    
+    const result = await createOrder(orderData);
+    console.log(`Заказ создан: ID ${result.id}, сумма ${result.total}`);
+}
 
 ##### Заключение
 Проект реализует многослойную архитектуру с четким разделением ответственности. Модели данных независимы от представления и слоя коммуникации, что обеспечивает гибкость и масштабируемость приложения. Все компоненты протестированы и готовы к интеграции с UI слоем.
