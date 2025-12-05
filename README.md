@@ -374,5 +374,38 @@ if (order.isValid() && basket.getCount() > 0) {
     console.log(`Заказ создан: ID ${result.id}, сумма ${result.total}`);
 }
 
+##### Класс ApiShop
+*Назначение*: Класс для выполнения конкретных запросов к серверу API магазина. Использует базовый класс Api для выполнения HTTP-запросов.
+
+*Конструктор*:
+```typescript
+constructor(api: Api)
+Принимает экземпляр базового класса Api.
+
+Методы класса:
+
+getProductList(): Promise<ProductListResponse>
+Описание: Получает список товаров с сервера
+Возвращает: Promise<ProductListResponse> - промис с данными от сервера
+
+createOrder(orderData: OrderRequest): Promise<{ id: string; total: number }>
+Описание: Отправляет данные заказа на сервер
+Параметр: orderData: OrderRequest - данные заказа
+Возвращает: Promise<{ id: string; total: number }> - ответ сервера
+
+Пример использования:
+
+typescript
+import { Api } from './components/base/Api';
+import { ApiShop } from './components/ApiShop';
+import { Catalog } from './components/models/catalog';
+
+const baseApi = new Api('https://api.example.com');
+const apiShop = new ApiShop(baseApi);
+const catalog = new Catalog();
+
+const response = await apiShop.getProductList();
+catalog.setItems(response.items);
+
 ##### Заключение
 Проект реализует многослойную архитектуру с четким разделением ответственности. Модели данных независимы от представления и слоя коммуникации, что обеспечивает гибкость и масштабируемость приложения. Все компоненты протестированы и готовы к интеграции с UI слоем.
