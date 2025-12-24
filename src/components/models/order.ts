@@ -1,6 +1,8 @@
 import { OrderForm } from '../../types';
+import { BaseModel } from './BaseModel';
+import { EventEmitter } from '../base/Events';
 
-export class Order {
+export class Order extends BaseModel {
     private data: OrderForm = {
         payment: '',
         address: '',
@@ -8,9 +10,14 @@ export class Order {
         phone: ''
     };
 
+    constructor(events: EventEmitter) {
+        super(events);
+    }
+
     // Сохранение данных
     setData(data: Partial<OrderForm>): void {
         this.data = { ...this.data, ...data };
+        this.events.emit('order:changed', { data: this.data });
     }
 
     // Получение данных
@@ -62,5 +69,6 @@ export class Order {
             email: '',
             phone: ''
         };
+        this.events.emit('order:changed', { data: this.data });
     }
 }

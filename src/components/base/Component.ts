@@ -1,3 +1,4 @@
+// src/components/base/Component.ts
 /**
  * Базовый компонент
  */
@@ -9,11 +10,29 @@ export abstract class Component<T> {
     // Инструментарий для работы с DOM в дочерних компонентах
 
     // Установить изображение с альтернативным текстом
-    protected setImage(element: HTMLImageElement, src: string, alt?: string) {
+    protected setImage(element: HTMLImageElement, src: string, alt?: string): void {
         if (element) {
             element.src = src;
             if (alt) {
                 element.alt = alt;
+            }
+        }
+    }
+
+    // Установить текстовое содержимое
+    protected setText(element: HTMLElement, text: string | number): void {
+        if (element) {
+            element.textContent = String(text);
+        }
+    }
+
+    // Изменить состояние кнопки
+    protected setDisabled(element: HTMLElement, state: boolean): void {
+        if (element) {
+            if (state) {
+                element.setAttribute('disabled', 'disabled');
+            } else {
+                element.removeAttribute('disabled');
             }
         }
     }

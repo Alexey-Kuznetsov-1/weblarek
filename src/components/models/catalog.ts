@@ -1,12 +1,19 @@
 import { Product } from '../../types';
+import { BaseModel } from './BaseModel';
+import { EventEmitter } from '../base/Events';
 
-export class Catalog {
+export class Catalog extends BaseModel {
     private items: Product[] = [];
     private selectedItem: Product | null = null;
+
+    constructor(events: EventEmitter) {
+        super(events);
+    }
 
     // Сохранить массив товаров
     setItems(items: Product[]): void {
         this.items = items;
+        this.events.emit('catalog:changed', { items: this.items });
     }
 
     // Получить массив товаров
@@ -17,6 +24,7 @@ export class Catalog {
     // Сохранить выбранную карточку
     setPreview(item: Product): void {
         this.selectedItem = item;
+        this.events.emit('preview:changed', { item: this.selectedItem });
     }
 
     // Получить выбранную карточку
@@ -32,5 +40,6 @@ export class Catalog {
     // Очистить выбранный товар
     clearPreview(): void {
         this.selectedItem = null;
+        this.events.emit('preview:changed', { item: null });
     }
 }
