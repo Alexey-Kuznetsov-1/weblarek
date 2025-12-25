@@ -1,22 +1,18 @@
-// src/components/view/Gallery.ts
 import { Component } from '../base/Component';
-
-interface IGallery {
-    items: HTMLElement[];
-}
+import { IGallery } from '../../types';
 
 export class Gallery extends Component<IGallery> {
+    private _itemsContainer: HTMLElement;
+
     constructor(container: HTMLElement) {
         super(container);
+        this._itemsContainer = container;
     }
 
-    set items(value: HTMLElement[]) {
-        // Очищаем контейнер
-        this.container.innerHTML = '';
-        
-        // Добавляем все элементы
-        value.forEach(item => {
-            this.container.appendChild(item);
+    set items(elements: HTMLElement[]) {
+        this._itemsContainer.innerHTML = '';
+        elements.forEach(element => {
+            this._itemsContainer.appendChild(element);
         });
     }
 }

@@ -1,46 +1,47 @@
-// src/components/view/Modal.ts
 import { Component } from '../base/Component';
+import { IModal } from '../../types';
 import { EventEmitter } from '../base/Events';
 
-interface IModal {
-    content: HTMLElement;
-}
-
 export class Modal extends Component<IModal> {
-    protected _closeButton: HTMLButtonElement;
-    protected _content: HTMLElement;
+    private _closeButton: HTMLElement;
+    private _content: HTMLElement;
+    private _events: EventEmitter;
 
-    constructor(container: HTMLElement, protected events: EventEmitter) {
+    constructor(container: HTMLElement, events: EventEmitter) {
         super(container);
+        this._events = events;
         
-        const closeButton = container.querySelector('.modal__close');
-        const content = container.querySelector('.modal__content');
-        
-        if (!closeButton || !content) {
-            throw new Error('Не найдены элементы модального окна');
-        }
-        
-        this._closeButton = closeButton as HTMLButtonElement;
-        this._content = content as HTMLElement;
+        this._closeButton = container.querySelector('.modal__close')!;
+        this._content = container.querySelector('.modal__content')!;
 
         this._closeButton.addEventListener('click', () => this.close());
-        this.container.addEventListener('click', (event) => {
-            if (event.target === this.container) this.close();
+        container.addEventListener('click', (event: MouseEvent) => {
+            if (event.target === container) {
+                this.close();
+            }
         });
     }
 
-    set content(value: HTMLElement) {
-        this._content.replaceChildren(value);
+    set content(content: HTMLElement) {
+        this._content.innerHTML = '';
+        this._content.appendChild(content);
     }
 
     open(): void {
         this.container.classList.add('modal_active');
-        document.body.classList.add('modal-open');
+        document.addEventListener('keydown', this._handleEscape);
     }
 
     close(): void {
         this.container.classList.remove('modal_active');
-        document.body.classList.remove('modal-open');
-        this.events.emit('modal:close');
+        this._content.innerHTML = '';
+        document.removeEventListener('keydown', this._handleEscape);
+        this._events.emit('modal:close');
     }
+
+    private _handleEscape = (event: KeyboardEvent): void => {
+        if (event.key === 'Escape') {
+            this.close();
+        }
+    };
 }

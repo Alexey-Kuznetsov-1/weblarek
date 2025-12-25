@@ -1,26 +1,18 @@
-// src/components/view/CatalogCard.ts
 import { Card } from './Card';
+import { ICard } from '../../types';
 import { EventEmitter } from '../base/Events';
-import { Product } from '../../types';
 
-export class CatalogCard extends Card<{}> {
-    protected _id: string;
+export class CatalogCard extends Card<ICard> {
+    private _events: EventEmitter;
 
-    constructor(
-        container: HTMLElement,
-        events: EventEmitter,
-        product: Product
-    ) {
-        super(container, events);
-        this._id = product.id;
-
+    constructor(container: HTMLElement, events: EventEmitter) {
+        super(container);
+        this._events = events;
+        
         this.container.addEventListener('click', () => {
-            this.events.emit('card:select', { id: this._id });
+            if (this.id) {
+                this._events.emit('card:select', { id: this.id });
+            }
         });
-
-        this.title = product.title;
-        this.image = product.image;
-        this.category = product.category;
-        this.price = product.price;
     }
 }

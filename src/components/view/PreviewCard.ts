@@ -1,48 +1,67 @@
-// src/components/view/PreviewCard.ts
 import { Card } from './Card';
+import { ICard } from '../../types';
 import { EventEmitter } from '../base/Events';
-import { Product } from '../../types';
 
-interface IPreviewCard {
-    title: string;
-    image: string;
-    category: string;
-    price: number | null;
-    description: string;
-    buttonText: string;
-}
+export class PreviewCard extends Card<ICard> {
+    private _button: HTMLElement | null = null;
+    private _description: HTMLElement | null = null;
+    private _events: EventEmitter;
 
-export class PreviewCard extends Card<IPreviewCard> {
-    protected _id: string;
-    protected _button: HTMLButtonElement;
-
-    constructor(
-        container: HTMLElement,
-        events: EventEmitter,
-        product: Product
-    ) {
-        super(container, events);
-        this._id = product.id;
+    constructor(container: HTMLElement, events: EventEmitter) {
+        super(container);
+        this._events = events;
         
-        const button = this.container.querySelector('.card__button');
-        if (!button) {
-            throw new Error('Кнопка не найдена в шаблоне предпросмотра');
+        const buttonElement = container.querySelector('.card__button');
+        const descriptionElement = container.querySelector('.card__text');
+        
+        if (buttonElement) {
+            this._button = buttonElement as HTMLElement;
+            this._button.addEventListener('click', () => {
+                if (this.id) {
+                    if (this._button?.textContent === 'Купить') {
+                        this._events.emit('card:add', { id: this.id });
+                    } else {
+                        this._events.emit('card:remove', { id: this.id });
+                    }
+                }
+            });
         }
-        this._button = button as HTMLButtonElement;
         
-        this._button.addEventListener('click', () => {
-            this.handleButtonClick();
-        });
-
-        this.title = product.title;
-        this.image = product.image;
-        this.category = product.category;
-        this.price = product.price;
-        this.description = product.description;
+        if (descriptionElement) {
+            this._description = descriptionElement as HTMLElement;
+        }
     }
 
-    private handleButtonClick(): void {
-        const eventType = this._button.textContent === 'В корзину' ? 'card:add' : 'card:remove';
-        this.events.emit(eventType, { id: this._id });
+    set description(value: string) {
+        if (this._description) {
+            this.setText(this._description, value);
+        }
+    }
+
+    set buttonText(value: string) {
+        if (this._button) {
+            this.setText(this._button, value);
+        }
+    }
+
+    set buttonDisabled(value: boolean) {
+        if (this._button) {
+            this.setDisabled(this._button, value);
+        }
+    }
+
+    updateButton(inCart: boolean, price: number | null) {
+        if (!this._button) return;
+        
+        if (price === null) {
+            this.buttonText = 'Недоступно';
+            this.buttonDisabled = true;
+        } else if (inCart) {
+            this.buttonText = 'Удалить из корзины';
+            this.buttonDisabled = false;
+        } else {
+            this.buttonText = 'Купить';
+            this.buttonDisabled = false;
+        }
     }
 }

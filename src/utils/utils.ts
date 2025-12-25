@@ -1,18 +1,21 @@
-export function pascalToKebab(value: string): string {
-    return value.replace(/([a-z0–9])([A-Z])/g, "$1-$2").toLowerCase();
-}
-
+// Проверка, является ли строка CSS селектором
 export function isSelector(x: any): x is string {
     return (typeof x === "string") && x.length > 1;
 }
 
+// Проверка на пустое значение
 export function isEmpty(value: any): boolean {
     return value === null || value === undefined;
 }
 
+// Тип для коллекции селекторов
 export type SelectorCollection<T> = string | NodeListOf<Element> | T[];
 
-export function ensureAllElements<T extends HTMLElement>(selectorElement: SelectorCollection<T>, context: HTMLElement = document as unknown as HTMLElement): T[] {
+// Получение всех элементов по селектору
+export function ensureAllElements<T extends HTMLElement>(
+    selectorElement: SelectorCollection<T>, 
+    context: HTMLElement = document as unknown as HTMLElement
+): T[] {
     if (isSelector(selectorElement)) {
         return Array.from(context.querySelectorAll(selectorElement)) as T[];
     }
@@ -25,9 +28,14 @@ export function ensureAllElements<T extends HTMLElement>(selectorElement: Select
     throw new Error(`Unknown selector element`);
 }
 
+// Тип для единичного селектора
 export type SelectorElement<T> = T | string;
 
-export function ensureElement<T extends HTMLElement>(selectorElement: SelectorElement<T>, context?: HTMLElement): T {
+// Получение элемента по селектору (гарантирует наличие элемента)
+export function ensureElement<T extends HTMLElement>(
+    selectorElement: SelectorElement<T>, 
+    context?: HTMLElement
+): T {
     if (isSelector(selectorElement)) {
         const elements = ensureAllElements<T>(selectorElement, context);
         if (elements.length > 1) {
@@ -36,7 +44,7 @@ export function ensureElement<T extends HTMLElement>(selectorElement: SelectorEl
         if (elements.length === 0) {
             throw new Error(`selector ${selectorElement} return nothing`);
         }
-        return elements.pop() as T;
+        return elements[0] as T;
     }
     if (selectorElement instanceof HTMLElement) {
         return selectorElement as T;
@@ -44,6 +52,7 @@ export function ensureElement<T extends HTMLElement>(selectorElement: SelectorEl
     throw new Error('Unknown selector element');
 }
 
+// Клонирование шаблона
 export function cloneTemplate<T extends HTMLElement>(query: string | HTMLTemplateElement): T {
     const template = ensureElement(query) as HTMLTemplateElement;
     if (!template.content.firstElementChild) {
@@ -52,6 +61,7 @@ export function cloneTemplate<T extends HTMLElement>(query: string | HTMLTemplat
     return template.content.firstElementChild.cloneNode(true) as T;
 }
 
+// Генератор CSS классов по БЭМ
 export function bem(block: string, element?: string, modifier?: string): { name: string, class: string } {
     let name = block;
     if (element) name += `__${element}`;
@@ -62,28 +72,14 @@ export function bem(block: string, element?: string, modifier?: string): { name:
     };
 }
 
-export function getObjectProperties(obj: object, filter?: (name: string, prop: PropertyDescriptor) => boolean): string[] {
-    return Object.entries(
-        Object.getOwnPropertyDescriptors(
-            Object.getPrototypeOf(obj)
-        )
-    )
-        .filter(([name, prop]: [string, PropertyDescriptor]) => filter ? filter(name, prop) : (name !== 'constructor'))
-        .map(([name,]) => name);
-}
-
-/**
- * Устанавливает dataset атрибуты элемента
- */
+// Установка dataset атрибутов
 export function setElementData<T extends Record<string, unknown> | object>(el: HTMLElement, data: T) {
     for (const key in data) {
         el.dataset[key] = String(data[key]);
     }
 }
 
-/**
- * Получает типизированные данные из dataset атрибутов элемента
- */
+// Получение типизированных данных из dataset
 export function getElementData<T extends Record<string, unknown>>(el: HTMLElement, scheme: Record<string, Function>): T {
     const data: Partial<T> = {};
     for (const key in el.dataset) {
@@ -92,30 +88,22 @@ export function getElementData<T extends Record<string, unknown>>(el: HTMLElemen
     return data as T;
 }
 
-/**
- * Проверка на простой объект
- */
+// Проверка на простой объект
 export function isPlainObject(obj: unknown): obj is object {
     const prototype = Object.getPrototypeOf(obj);
-    return  prototype === Object.getPrototypeOf({}) ||
-        prototype === null;
+    return prototype === Object.getPrototypeOf({}) || prototype === null;
 }
 
+// Проверка на булево значение
 export function isBoolean(v: unknown): v is boolean {
     return typeof v === 'boolean';
 }
 
-/**
- * Фабрика DOM-элементов в простейшей реализации
- * здесь не учтено много факторов
- * в интернет можно найти более полные реализации
- */
-export function createElement<
-    T extends HTMLElement
-    >(
+// Создание элемента с свойствами
+export function createElement<T extends HTMLElement>(
     tagName: keyof HTMLElementTagNameMap,
     props?: Partial<Record<keyof T, string | boolean | object>>,
-    children?: HTMLElement | HTMLElement []
+    children?: HTMLElement | HTMLElement[]
 ): T {
     const element = document.createElement(tagName) as T;
     if (props) {
@@ -135,4 +123,40 @@ export function createElement<
         }
     }
     return element;
+}
+
+// Новые утилиты для работы с формами
+
+// Валидация email
+export function validateEmail(email: string): boolean {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+// Валидация телефона (упрощенная)
+export function validatePhone(phone: string): boolean {
+    return phone.trim().length >= 5;
+}
+
+// Валидация адреса
+export function validateAddress(address: string): boolean {
+    return address.trim().length >= 3;
+}
+
+// Форматирование цены
+export function formatPrice(price: number | null): string {
+    if (price === null) return 'Бесценно';
+    return `${price} синапсов`;
+}
+
+// Получение класса для категории
+export function getCategoryClass(category: string): string {
+    const categoryMap: Record<string, string> = {
+        'софт-скил': 'card__category_soft',
+        'хард-скил': 'card__category_hard',
+        'кнопка': 'card__category_button',
+        'дополнительное': 'card__category_additional',
+        'другое': 'card__category_other'
+    };
+    return categoryMap[category] || 'card__category_other';
 }

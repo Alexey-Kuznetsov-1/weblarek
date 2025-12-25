@@ -1,34 +1,25 @@
-// src/components/view/Header.ts
 import { Component } from '../base/Component';
+import { IHeader } from '../../types';
 import { EventEmitter } from '../base/Events';
 
-interface IHeader {
-    counter: number;
-}
-
 export class Header extends Component<IHeader> {
-    protected _basketButton: HTMLButtonElement;
-    protected _counter: HTMLElement;
+    private _basketButton: HTMLElement;
+    private _counter: HTMLElement;
+    private _events: EventEmitter;
 
-    constructor(container: HTMLElement, protected events: EventEmitter) {
+    constructor(container: HTMLElement, events: EventEmitter) {
         super(container);
+        this._events = events;
         
-        const basketButton = container.querySelector('.header__basket');
-        const counter = container.querySelector('.header__basket-counter');
+        this._basketButton = container.querySelector('.header__basket')!;
+        this._counter = this._basketButton.querySelector('.header__basket-counter')!;
         
-        if (!basketButton || !counter) {
-            throw new Error('Не найдены элементы шапки');
-        }
-        
-        this._basketButton = basketButton as HTMLButtonElement;
-        this._counter = counter as HTMLElement;
-
         this._basketButton.addEventListener('click', () => {
-            this.events.emit('header:basket:open');
+            this._events.emit('header:basket:open');
         });
     }
 
     set counter(value: number) {
-        this.setText(this._counter, value);
+        this.setText(this._counter, String(value));
     }
 }

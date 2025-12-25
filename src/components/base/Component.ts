@@ -1,7 +1,3 @@
-// src/components/base/Component.ts
-/**
- * Базовый компонент
- */
 export abstract class Component<T> {
     protected constructor(protected readonly container: HTMLElement) {
         // Учитывайте что код в конструкторе исполняется ДО всех объявлений в дочернем классе
@@ -20,14 +16,16 @@ export abstract class Component<T> {
     }
 
     // Установить текстовое содержимое
-    protected setText(element: HTMLElement, text: string | number): void {
+    protected setText(element: HTMLElement, text: string | number): void;
+    protected setText(element: Element, text: string | number): void {
         if (element) {
             element.textContent = String(text);
         }
     }
 
     // Изменить состояние кнопки
-    protected setDisabled(element: HTMLElement, state: boolean): void {
+    protected setDisabled(element: HTMLElement, state: boolean): void;
+    protected setDisabled(element: Element, state: boolean): void {
         if (element) {
             if (state) {
                 element.setAttribute('disabled', 'disabled');

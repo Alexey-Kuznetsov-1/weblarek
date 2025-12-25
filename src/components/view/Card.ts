@@ -1,108 +1,63 @@
-// src/components/view/Card.ts
 import { Component } from '../base/Component';
-import { EventEmitter } from '../base/Events';
-import { categoryMap } from '../../utils/constants';
+import { ICard } from '../../types';
+import { getCategoryClass, formatPrice } from '../../utils/utils';
 
-export interface ICard {
-    title: string;
-    image: string;
-    category: string;
-    price: number | null;
-    description?: string;
-    buttonText?: string;
-    index?: number;
-}
+export abstract class Card<T extends ICard> extends Component<T> {
+    protected _title: HTMLElement | null = null;
+    protected _image: HTMLImageElement | null = null;
+    protected _category: HTMLElement | null = null;
+    protected _price: HTMLElement | null = null;
+    protected _id: string = '';
 
-export class Card<T> extends Component<T> {
-    protected container: HTMLElement;
-    protected events: EventEmitter;
-    
-    protected _title: HTMLElement | null;
-    protected _image: HTMLImageElement | null;
-    protected _category: HTMLElement | null;
-    protected _price: HTMLElement | null;
-    protected _button?: HTMLButtonElement | null;
-    protected _description?: HTMLElement | null;
-    protected _index?: HTMLElement | null;
-
-    constructor(
-        container: HTMLElement,
-        events: EventEmitter
-    ) {
+    constructor(container: HTMLElement) {
         super(container);
-        this.container = container;
-        this.events = events;
         
-        // Находим элементы (могут быть null для некоторых типов карточек)
-        this._title = this.container.querySelector('.card__title');
-        this._image = this.container.querySelector('.card__image');
-        this._category = this.container.querySelector('.card__category');
-        this._price = this.container.querySelector('.card__price');
+        const titleElement = container.querySelector('.card__title');
+        if (titleElement) this._title = titleElement as HTMLElement;
         
-        // Опциональные элементы
-        this._button = this.container.querySelector('.card__button');
-        this._description = this.container.querySelector('.card__text');
-        this._index = this.container.querySelector('.basket__item-index');
+        const imageElement = container.querySelector('.card__image');
+        if (imageElement) this._image = imageElement as HTMLImageElement;
         
-        // УБРАЛИ СТРОГУЮ ПРОВЕРКУ - разные карточки имеют разные элементы
-        // Вместо этого проверяем в дочерних классах то, что им нужно
+        const categoryElement = container.querySelector('.card__category');
+        if (categoryElement) this._category = categoryElement as HTMLElement;
+        
+        const priceElement = container.querySelector('.card__price');
+        if (priceElement) this._price = priceElement as HTMLElement;
+    }
+
+    get id(): string {
+        return this._id;
+    }
+
+    set id(value: string) {
+        this._id = value;
+        // Сохраняем id в dataset для отладки
+        this.container.dataset.id = value;
     }
 
     set title(value: string) {
-        if (this._title) this.setText(this._title, value);
+        if (this._title) {
+            this.setText(this._title, value);
+        }
     }
 
     set image(value: string) {
-        if (this._image) this.setImage(this._image, value);
+        if (this._image) {
+            this.setImage(this._image, value);
+        }
     }
 
     set category(value: string) {
         if (this._category) {
             this.setText(this._category, value);
-            const categoryClass = categoryMap[value as keyof typeof categoryMap] || 'card__category_other';
-            this._category.className = 'card__category';
-            this._category.classList.add(categoryClass);
+            const categoryClass = getCategoryClass(value);
+            this._category.className = `card__category ${categoryClass}`;
         }
     }
 
     set price(value: number | null) {
         if (this._price) {
-            const priceText = value !== null ? `${value} синапсов` : 'Бесценно';
-            this.setText(this._price, priceText);
-        }
-    }
-
-    set description(value: string) {
-        if (this._description) {
-            this.setText(this._description, value);
-        }
-    }
-
-    set buttonText(value: string) {
-        if (this._button) {
-            this.setText(this._button, value);
-        }
-    }
-
-    set index(value: number) {
-        if (this._index) {
-            this.setText(this._index, value);
-        }
-    }
-
-    updateButton(inCart: boolean, price: number | null): void {
-        if (!this._button) return;
-
-        if (price === null) {
-            if (this._button) {
-                this.buttonText = 'Недоступно';
-                this.setDisabled(this._button, true);
-            }
-        } else {
-            if (this._button) {
-                this.buttonText = inCart ? 'Убрать из корзины' : 'В корзину';
-                this.setDisabled(this._button, false);
-            }
+            this.setText(this._price, formatPrice(value));
         }
     }
 }

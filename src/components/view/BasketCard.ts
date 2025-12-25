@@ -1,39 +1,31 @@
-// src/components/view/BasketCard.ts
 import { Card } from './Card';
+import { ICard } from '../../types';
 import { EventEmitter } from '../base/Events';
-import { Product } from '../../types';
 
-interface IBasketCard {
-    title: string;
-    price: number;
-    index: number;
-}
+export class BasketCard extends Card<ICard> {
+    private _button: HTMLElement | null = null;
+    private _events: EventEmitter;
 
-export class BasketCard extends Card<IBasketCard> {
-    protected _id: string;
-    protected _deleteButton: HTMLButtonElement;
-
-    constructor(
-        container: HTMLElement,
-        events: EventEmitter,
-        product: Product,
-        index: number
-    ) {
-        super(container, events);
-        this._id = product.id;
+    constructor(container: HTMLElement, events: EventEmitter) {
+        super(container);
+        this._events = events;
         
-        const deleteButton = this.container.querySelector('.basket__item-delete');
-        if (!deleteButton) {
-            throw new Error('Кнопка удаления не найдена в шаблоне корзины');
+        const buttonElement = container.querySelector('.basket__item-delete');
+        if (buttonElement) {
+            this._button = buttonElement as HTMLElement;
+            this._button.addEventListener('click', (event) => {
+                event.preventDefault();
+                if (this.id) {
+                    this._events.emit('basket:remove', { id: this.id });
+                }
+            });
         }
-        this._deleteButton = deleteButton as HTMLButtonElement;
-        
-        this._deleteButton.addEventListener('click', () => {
-            this.events.emit('basket:remove', { id: this._id });
-        });
+    }
 
-        this.title = product.title;
-        this.price = product.price || 0;
-        this.index = index;
+    set index(value: number) {
+        const indexElement = this.container.querySelector('.basket__item-index');
+        if (indexElement) {
+            this.setText(indexElement as HTMLElement, String(value));
+        }
     }
 }
