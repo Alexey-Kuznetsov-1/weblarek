@@ -6,6 +6,7 @@ export class Modal extends Component<IModal> {
     private _closeButton: HTMLElement;
     private _content: HTMLElement;
     private _events: EventEmitter;
+    private _isOpen: boolean = false;
 
     constructor(container: HTMLElement, events: EventEmitter) {
         super(container);
@@ -22,6 +23,11 @@ export class Modal extends Component<IModal> {
         });
     }
 
+    // Геттер для проверки открытости модального окна
+    get isOpen(): boolean {
+        return this._isOpen;
+    }
+
     set content(content: HTMLElement) {
         this._content.innerHTML = '';
         this._content.appendChild(content);
@@ -29,12 +35,14 @@ export class Modal extends Component<IModal> {
 
     open(): void {
         this.container.classList.add('modal_active');
+        this._isOpen = true;
         document.addEventListener('keydown', this._handleEscape);
     }
 
     close(): void {
         this.container.classList.remove('modal_active');
         this._content.innerHTML = '';
+        this._isOpen = false;
         document.removeEventListener('keydown', this._handleEscape);
         this._events.emit('modal:close');
     }

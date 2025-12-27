@@ -29,6 +29,12 @@ export interface ProductListResponse {
     items: Product[];
 }
 
+// Базовый интерфейс для компонентов
+export interface IComponent<T extends object> {
+    // Базовые методы компонента
+    render(data?: Partial<T>): HTMLElement;
+}
+
 // Типы для View компонентов
 export interface ICard {
     id: string;
@@ -54,8 +60,17 @@ export interface IModal {
     content: HTMLElement;
 }
 
+// Новый тип для элемента корзины
+export interface IBasketItem {
+    id: string;
+    title: string;
+    price: number | null;
+    index: number;
+}
+
+// Обновленный тип для BasketView
 export interface IBasketView {
-    items: Product[];
+    items: HTMLElement[]; // Теперь принимает готовые элементы, а не Product[]
     total: number;
     valid: boolean;
 }
@@ -101,4 +116,38 @@ export interface OrderEmailEvent {
 
 export interface OrderPhoneEvent {
     phone: string;
+}
+
+// Дополнительные типы для TypeScript
+export type FormErrors = Partial<Record<keyof OrderForm, string>>;
+
+// Тип для данных формы заказа в модели
+export interface OrderFormData {
+    payment: PaymentMethod;
+    address: string;
+    email: string;
+    phone: string;
+}
+
+// Тип для данных формы контактов
+export interface ContactsFormData {
+    email: string;
+    phone: string;
+    valid: boolean;
+    errors: string[];
+}
+
+// Тип для BasketView данных
+export interface BasketViewData {
+    items: HTMLElement[];
+    total: number;
+    valid: boolean;
+}
+
+// Тип для OrderFormView данных
+export interface OrderFormDataView {
+    payment: PaymentMethod;
+    address: string;
+    valid: boolean;
+    errors: string[];
 }

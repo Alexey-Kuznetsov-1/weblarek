@@ -8,6 +8,7 @@ export class ContactsFormView extends Component<IContactsFormView> {
     private _submitButton: HTMLElement;
     private _errorContainer: HTMLElement;
     private _events: EventEmitter;
+    private _isFormValid: boolean = false;
 
     constructor(container: HTMLElement, events: EventEmitter) {
         super(container);
@@ -18,26 +19,53 @@ export class ContactsFormView extends Component<IContactsFormView> {
         this._submitButton = container.querySelector('button[type="submit"]')!;
         this._errorContainer = container.querySelector('.form__errors')!;
 
+        // Обработчики изменения полей
         this._emailInput.addEventListener('input', () => {
-            this._events.emit('order:email:changed', { email: this._emailInput.value });
+            const email = this._emailInput.value;
+            this._events.emit('order:email:changed', { email });
+            this.validateForm();
         });
 
         this._phoneInput.addEventListener('input', () => {
-            this._events.emit('order:phone:changed', { phone: this._phoneInput.value });
+            const phone = this._phoneInput.value;
+            this._events.emit('order:phone:changed', { phone });
+            this.validateForm();
         });
 
+        // Обработчик отправки формы с предварительной проверкой
         this._submitButton.addEventListener('click', (e: Event) => {
             e.preventDefault();
-            this._events.emit('contacts:submit');
+            if (this._isFormValid) {
+                this._events.emit('contacts:submit');
+            }
         });
+    }
+
+    // Валидация формы
+    private validateForm(): void {
+        const email = this._emailInput.value.trim();
+        const phone = this._phoneInput.value.trim();
+        
+        // Проверка email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const isEmailValid = emailRegex.test(email);
+        
+        // Проверка телефона (минимум 10 цифр)
+        const phoneDigits = phone.replace(/\D/g, '');
+        const isPhoneValid = phoneDigits.length >= 10;
+        
+        this._isFormValid = isEmailValid && isPhoneValid;
+        this.valid = this._isFormValid;
     }
 
     set email(value: string) {
         this._emailInput.value = value;
+        this.validateForm();
     }
 
     set phone(value: string) {
         this._phoneInput.value = value;
+        this.validateForm();
     }
 
     set valid(value: boolean) {
@@ -51,5 +79,13 @@ export class ContactsFormView extends Component<IContactsFormView> {
         } else {
             this._errorContainer.style.display = 'none';
         }
+    }
+
+    clear() {
+        this._emailInput.value = '';
+        this._phoneInput.value = '';
+        this.errors = [];
+        this._isFormValid = false;
+        this.valid = false;
     }
 }

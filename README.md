@@ -1,26 +1,23 @@
-# Проектная работа "Веб-ларек"
-
-## Описание проекта
+Проектная работа "Веб-ларек"
+Описание проекта
 Интернет-магазин «Web-Larёk» для товаров веб-разработчиков с возможностью просмотра товаров, добавления в корзину и оформления заказов. Приложение реализовано по архитектуре MVP с использованием TypeScript и событийной системы.
 
-**Стек технологий**: TypeScript, SCSS, Vite, HTML
+Стек технологий: TypeScript, SCSS, Vite, HTML
 
-## Структура проекта
-src/
-├── components/ # Компоненты приложения
-│ ├── base/ # Базовые классы (Component, Api, EventEmitter)
-│ ├── models/ # Модели данных (Catalog, Basket, Order)
-│ ├── view/ # Компоненты представления
-│ └── ApiShop.ts # API магазина
-├── scss/ # Стили
-├── utils/ # Утилиты и константы
-├── types/ # TypeScript типы
-└── main.ts # Точка входа (Презентер)
-
+Структура проекта
 text
-
-## Установка и запуск
-```bash
+src/
+├── components/           # Компоненты приложения
+│   ├── base/            # Базовые классы (Component, Api, EventEmitter)
+│   ├── models/          # Модели данных (Catalog, Basket, Order)
+│   ├── view/            # Компоненты представления
+│   └── ApiShop.ts       # API магазина
+├── scss/                # Стили
+├── utils/               # Утилиты и константы
+├── types/               # TypeScript типы
+└── main.ts              # Точка входа (Презентер)
+Установка и запуск
+bash
 npm install      # Установка зависимостей
 npm run dev      # Запуск в режиме разработки
 npm run build    # Сборка для продакшена
@@ -28,7 +25,7 @@ npm run build    # Сборка для продакшена
 Приложение построено по паттерну Model-View-Presenter с использованием событийной коммуникации через EventEmitter.
 
 Model (Модели данных)
-Назначение: Хранение и управление данными приложения.
+Назначение: Хранение и управление данными приложения. Модели сами инициируют события при изменении состояния.
 
 Класс Catalog
 Управляет каталогом товаров.
@@ -36,12 +33,12 @@ Model (Модели данных)
 typescript
 class Catalog {
   constructor(events: EventEmitter) {}
-  setItems(items: Product[]): void
+  setItems(items: Product[]): void        // Вызывает catalog:changed
   getItems(): Product[]
   getProductById(id: string): Product | undefined
-  setPreview(product: Product): void
+  setPreview(product: Product): void      // Вызывает preview:changed
   getPreview(): Product | null
-  clearPreview(): void
+  clearPreview(): void                    // Вызывает preview:changed
 }
 Класс Basket
 Управляет корзиной покупок.
@@ -49,14 +46,14 @@ class Catalog {
 typescript
 class Basket {
   constructor(events: EventEmitter) {}
-  addItem(product: Product): void
-  removeItem(id: string): void
+  addItem(product: Product): void         // Вызывает basket:changed
+  removeItem(id: string): void            // Вызывает basket:changed
   getItems(): Product[]
   getCount(): number
   getTotal(): number
   hasItem(id: string): boolean
   getItemIds(): string[]
-  clear(): void
+  clear(): void                           // Вызывает basket:changed
 }
 Класс Order
 Управляет данными покупателя.
@@ -64,29 +61,29 @@ class Basket {
 typescript
 class Order {
   constructor(events: EventEmitter) {}
-  setData(data: Partial<OrderForm>): void
+  setData(data: Partial<OrderForm>): void // Вызывает order:form:update или order:contacts:update
   getData(): OrderForm
   validate(): Record<string, string>
   isValid(): boolean
-  clear(): void
+  clear(): void                           // Вызывает order:form:update и order:contacts:update
 }
 View (Компоненты представления)
-Назначение: Отображение данных и обработка пользовательских действий.
+Назначение: Отображение данных и обработка пользовательских действий. View не хранят состояние и не имеют методов очистки.
 
 Базовые компоненты
 Component - абстрактный базовый класс для всех компонентов
 
-Modal - универсальное модальное окно
+Modal - универсальное модальное окно с методом isOpen
 
 Header - шапка сайта с корзиной
 
 Gallery - контейнер для каталога товаров
 
-BasketView - отображение корзины покупок
+BasketView - отображение корзины покупок (принимает готовые элементы)
 
-OrderFormView - форма заказа (способ оплаты и адрес)
+OrderFormView - форма заказа (способ оплаты и адрес) с активными кнопками оплаты
 
-ContactsFormView - форма контактов (email и телефон)
+ContactsFormView - форма контактов (email и телефон) с блокировкой отправки при невалидных данных
 
 SuccessView - сообщение об успешном заказе
 
@@ -95,38 +92,18 @@ Card - абстрактный базовый класс для карточек
 
 CatalogCard - карточка товара в каталоге
 
-PreviewCard - детальный просмотр товара в модальном окне
+PreviewCard - детальный просмотр товара в модальном окне (создается один раз)
 
-BasketCard - товар в корзине с кнопкой удаления
+BasketItemView - товар в корзине с кнопкой удаления
 
-Типы данных
-typescript
-interface Product {
-  id: string
-  title: string
-  description: string
-  image: string
-  category: 'софт-скил' | 'хард-скил' | 'кнопка' | 'дополнительное' | 'другое'
-  price: number | null
-}
-
-interface OrderForm {
-  payment: 'card' | 'cash' | ''
-  address: string
-  email: string
-  phone: string
-}
-
-interface OrderRequest extends OrderForm {
-  total: number
-  items: string[]
-}
 Presenter (Презентер)
 Расположение: src/main.ts
-Назначение: Координация взаимодействия между Model и View через обработку событий.
+
+Назначение: Координация взаимодействия между Model и View через обработку событий. Презентер только реагирует на события, не инициирует их.
 
 Основные функции презентера:
-Инициализация всех моделей и компонентов (один раз при загрузке)
+
+Инициализация всех моделей и компонентов один раз при загрузке
 
 Загрузка товаров с сервера через ApiShop
 
@@ -134,18 +111,19 @@ Presenter (Презентер)
 
 Обновление представления при изменении данных в моделях
 
-Обновление моделей при действиях пользователя в View
+Создание готовых элементов для View (например, BasketItemView для корзины)
 
-Валидация форм и отправка заказов на сервер
+Отправка заказов на сервер
 
 Ключевые обработчики событий:
+
 card:select - выбор товара для просмотра
 
 card:add - добавление товара в корзину
 
 card:remove - удаление товара из корзины (из предпросмотра)
 
-basket:remove - удаление товара из корзины (из BasketCard)
+basket:remove - удаление товара из корзины (из BasketItemView)
 
 header:basket:open - открытие корзины
 
@@ -171,8 +149,32 @@ preview:changed - обновление детального просмотра
 
 basket:changed - обновление состояния корзины
 
-order:changed - обновление данных заказа
+order:form:update - обновление формы заказа
 
+order:contacts:update - обновление формы контактов
+
+Типы данных
+typescript
+interface Product {
+    id: string
+    title: string
+    description: string
+    image: string
+    category: 'софт-скил' | 'хард-скил' | 'кнопка' | 'дополнительное' | 'другое'
+    price: number | null
+}
+
+interface OrderForm {
+    payment: 'card' | 'cash' | ''
+    address: string
+    email: string
+    phone: string
+}
+
+interface OrderRequest extends OrderForm {
+    total: number
+    items: string[]
+}
 Коммуникация с сервером
 Класс ApiShop
 typescript
@@ -189,14 +191,14 @@ POST /order/ - создание нового заказа
 Событийная система
 Все компоненты общаются через EventEmitter, реализующий паттерн "Наблюдатель".
 
-События от View → Презентер:
+События от View → Presenter:
 card:select - выбор карточки товара
 
 card:add - добавление товара в корзину
 
 card:remove - удаление товара из корзины
 
-basket:remove - удаление товара из корзины (специальное для BasketCard)
+basket:remove - удаление товара из корзины (из BasketItemView)
 
 header:basket:open - открытие корзины
 
@@ -218,14 +220,16 @@ success:close - закрытие окна успеха
 
 modal:close - закрытие модального окна
 
-События от Model → Презентер → View:
+События от Model → Presenter → View:
 catalog:changed → обновление каталога товаров
 
 preview:changed → открытие предпросмотра товара
 
 basket:changed → обновление состояния корзины и счетчика
 
-order:changed → обновление данных заказа
+order:form:update → обновление валидации формы заказа
+
+order:contacts:update → обновление валидации формы контактов
 
 Валидация данных
 Реализована в классе Order:
@@ -234,18 +238,30 @@ order:changed → обновление данных заказа
 
 Форма контактов: проверка формата email и наличия телефона
 
-Отображение ошибок: ошибки показываются под формой с подсветкой невалидных полей
+Отображение ошибок: ошибки показываются под формой, кнопка отправки блокируется при невалидных данных
+
+Active кнопки оплаты: визуальная подсветка выбранного способа оплаты
 
 Ключевые особенности реализации
+Архитектурные решения:
 Чистая архитектура MVP - строгое разделение Model, View, Presenter
 
+Модели управляют событиями - модели сами вызывают события при изменении состояния
+
+View без состояния - представления не хранят данные, только отображают их
+
+Presenter как координатор - только реагирует на события, создает готовые элементы для View
+
+Одноразовое создание View - экземпляры View компонентов создаются при инициализации (особенно PreviewCard)
+
+Готовые элементы для корзины - BasketView принимает готовые HTMLElement элементы, созданные в презентере
+
+Технические детали:
 Событийное программирование - слабая связность компонентов через EventEmitter
 
 TypeScript - строгая типизация всего приложения
 
-Переиспользуемые компоненты - единая база Card для всех типов карточек
-
-Создание View один раз - экземпляры View компонентов создаются при инициализации
+Переиспользуемые компоненты - единая база Component для всех типов карточек
 
 Изоляция DOM-манипуляций - все работы с DOM через методы View компонентов
 
@@ -256,17 +272,17 @@ TypeScript - строгая типизация всего приложения
 Основной рабочий процесс
 Пользователь загружает страницу → загружаются товары с сервера
 
-Пользователь просматривает каталог товаров → Gallery отображает CatalogCard
+Пользователь просматривает каталог → Gallery отображает CatalogCard
 
 Пользователь кликает на товар → открывается PreviewCard в модальном окне
 
-Пользователь добавляет товар в корзину → Basket сохраняет товар
+Пользователь добавляет товар в корзину → Basket сохраняет товар и обновляет счетчик
 
-Пользователь открывает корзину → BasketView отображает список товаров
+Пользователь открывает корзину → презентер создает BasketItemView элементы и передает в BasketView
 
-Пользователь оформляет заказ → открывается OrderFormView
+Пользователь оформляет заказ → открывается OrderFormView с активными кнопками оплаты
 
-Пользователь заполняет контакты → открывается ContactsFormView
+Пользователь заполняет контакты → открывается ContactsFormView с блокировкой невалидной отправки
 
 Пользователь подтверждает заказ → данные отправляются на сервер
 
@@ -298,4 +314,8 @@ API: RESTful API с базовой авторизацией
 
 События вместо прямых вызовов - компоненты общаются через события
 
+View зависят от Model - представления отражают состояние моделей
+
 Отсутствие магических значений - все константы вынесены в отдельные файлы
+
+Presenter не инициирует события - только реагирует на события моделей и представлений

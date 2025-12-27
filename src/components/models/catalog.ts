@@ -13,7 +13,7 @@ export class Catalog extends BaseModel {
     // Сохранить массив товаров
     setItems(items: Product[]): void {
         this.items = items;
-        this.events.emit('catalog:changed', { items: this.items });
+        this.events.emit('catalog:changed'); // ✅ Событие вызывается здесь
     }
 
     // Получить массив товаров
@@ -24,7 +24,7 @@ export class Catalog extends BaseModel {
     // Сохранить выбранную карточку
     setPreview(item: Product): void {
         this.selectedItem = item;
-        this.events.emit('preview:changed', { item: this.selectedItem });
+        this.events.emit('preview:changed'); // ✅ Событие вызывается здесь
     }
 
     // Получить выбранную карточку
@@ -40,6 +40,6 @@ export class Catalog extends BaseModel {
     // Очистить выбранный товар
     clearPreview(): void {
         this.selectedItem = null;
-        this.events.emit('preview:changed', { item: null });
+        this.events.emit('preview:changed'); // ✅ Событие вызывается здесь
     }
 }

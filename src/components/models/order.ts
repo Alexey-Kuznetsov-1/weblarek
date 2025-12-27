@@ -17,7 +17,14 @@ export class Order extends BaseModel {
     // Сохранение данных
     setData(data: Partial<OrderForm>): void {
         this.data = { ...this.data, ...data };
-        this.events.emit('order:changed', { data: this.data });
+        
+        // ✅ Определяем какое событие нужно вызвать
+        if (data.payment !== undefined || data.address !== undefined) {
+            this.events.emit('order:form:update');
+        }
+        if (data.email !== undefined || data.phone !== undefined) {
+            this.events.emit('order:contacts:update');
+        }
     }
 
     // Получение данных
@@ -69,6 +76,8 @@ export class Order extends BaseModel {
             email: '',
             phone: ''
         };
-        this.events.emit('order:changed', { data: this.data });
+        // ✅ Вызываем оба события при очистке
+        this.events.emit('order:form:update');
+        this.events.emit('order:contacts:update');
     }
 }
