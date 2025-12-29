@@ -17,12 +17,10 @@ export class PreviewCard extends Card<ICard> {
         if (buttonElement) {
             this._button = buttonElement as HTMLElement;
             this._button.addEventListener('click', () => {
-                if (this.id) {
-                    if (this._button?.textContent === 'Купить') {
-                        this._events.emit('card:add', { id: this.id });
-                    } else {
-                        this._events.emit('card:remove', { id: this.id });
-                    }
+                const id = this.container.dataset.id;
+                if (id) {
+                    // Отправляем одно событие, презентер сам решит что делать
+                    this._events.emit('preview:action', { id });
                 }
             });
         }
@@ -30,6 +28,12 @@ export class PreviewCard extends Card<ICard> {
         if (descriptionElement) {
             this._description = descriptionElement as HTMLElement;
         }
+    }
+
+    render(data: ICard): HTMLElement {
+        super.render(data);
+        this.container.dataset.id = data.id;
+        return this.container;
     }
 
     set description(value: string) {

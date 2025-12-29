@@ -10,9 +10,16 @@ export class CatalogCard extends Card<ICard> {
         this._events = events;
         
         this.container.addEventListener('click', () => {
-            if (this.id) {
-                this._events.emit('card:select', { id: this.id });
+            const id = this.container.dataset.id; // Получаем id из dataset
+            if (id) {
+                this._events.emit('card:select', { id });
             }
         });
+    }
+
+    render(data: ICard): HTMLElement {
+        super.render(data);
+        this.container.dataset.id = data.id; // Сохраняем id в dataset
+        return this.container;
     }
 }

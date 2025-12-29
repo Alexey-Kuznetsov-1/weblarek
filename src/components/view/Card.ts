@@ -7,7 +7,6 @@ export abstract class Card<T extends ICard> extends Component<T> {
     protected _image: HTMLImageElement | null = null;
     protected _category: HTMLElement | null = null;
     protected _price: HTMLElement | null = null;
-    protected _id: string = '';
 
     constructor(container: HTMLElement) {
         super(container);
@@ -23,16 +22,6 @@ export abstract class Card<T extends ICard> extends Component<T> {
         
         const priceElement = container.querySelector('.card__price');
         if (priceElement) this._price = priceElement as HTMLElement;
-    }
-
-    get id(): string {
-        return this._id;
-    }
-
-    set id(value: string) {
-        this._id = value;
-        // Сохраняем id в dataset для отладки
-        this.container.dataset.id = value;
     }
 
     set title(value: string) {

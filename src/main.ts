@@ -12,7 +12,7 @@ import { ensureElement, cloneTemplate } from './utils/utils';
 import { CatalogCard } from './components/view/CatalogCard';
 import { PreviewCard } from './components/view/PreviewCard';
 import { BasketView } from './components/view/Basket';
-import { BasketItemView } from './components/view/BasketItem';
+import { BasketCard } from './components/view/BasketCard';
 import { OrderFormView } from './components/view/OrderForm';
 import { ContactsFormView } from './components/view/ContactsForm';
 import { SuccessView } from './components/view/Success';
@@ -72,7 +72,7 @@ async function main() {
         // Создаем готовые элементы товаров
         const basketItems = items.map((item, index) => {
             const itemElement = cloneTemplate<HTMLElement>(basketItemTemplate);
-            const basketItem = new BasketItemView(itemElement, events);
+            const basketItem = new BasketCard(itemElement, events);
             
             return basketItem.render({
                 id: item.id,
@@ -129,22 +129,20 @@ async function main() {
         }
     });
     
-    // Обработчик: Добавление товара в корзину
-    events.on('card:add', (data: { id: string }) => {
+    // Обработчик: Действие с товаром в предпросмотре
+    events.on('preview:action', (data: { id: string }) => {
         const product = catalog.getProductById(data.id);
         if (product) {
-            basket.addItem(product);
+            if (basket.hasItem(product.id)) {
+                basket.removeItem(product.id);
+            } else {
+                basket.addItem(product);
+            }
             modal.close();
         }
     });
     
-    // Обработчик: Удаление товара из корзины
-    events.on('card:remove', (data: { id: string }) => {
-        basket.removeItem(data.id);
-        modal.close();
-    });
-    
-    // Обработчик: Удаление товара из корзины (из BasketItemView)
+    // Обработчик: Удаление товара из корзины (из BasketCard)
     events.on('basket:remove', (data: { id: string }) => {
         basket.removeItem(data.id);
     });
@@ -154,14 +152,13 @@ async function main() {
         const count = basket.getCount();
         header.counter = count;
         
-        // Обновляем представление корзины
+        // Обновляем представление корзины при каждом изменении
         updateBasketView();
     });
     
     // Обработчик: Открытие корзины
     events.on('header:basket:open', () => {
-        // Обновляем корзину перед открытием
-        updateBasketView();
+        // Только открываем корзину, не обновляем ее
         modal.content = basketView.element;
         modal.open();
     });

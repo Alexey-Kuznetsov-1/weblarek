@@ -18,7 +18,6 @@ export interface OrderForm {
     phone: string;
 }
 
-// Запрос на создание заказа (расширяет OrderForm)
 export interface OrderRequest extends OrderForm {
     total: number;
     items: string[];
@@ -29,13 +28,11 @@ export interface ProductListResponse {
     items: Product[];
 }
 
-// Базовый интерфейс для компонентов
 export interface IComponent<T extends object> {
-    // Базовые методы компонента
     render(data?: Partial<T>): HTMLElement;
 }
 
-// Типы для View компонентов
+// Тип для карточек каталога и предпросмотра
 export interface ICard {
     id: string;
     title: string;
@@ -45,32 +42,19 @@ export interface ICard {
     description?: string;
     buttonText?: string;
     buttonDisabled?: boolean;
-    index?: number;
+    // НЕТ index здесь!
 }
 
-export interface IGallery {
-    items: HTMLElement[];
-}
-
-export interface IHeader {
-    counter: number;
-}
-
-export interface IModal {
-    content: HTMLElement;
-}
-
-// Новый тип для элемента корзины
+// Отдельный тип для элементов корзины
 export interface IBasketItem {
     id: string;
     title: string;
     price: number | null;
-    index: number;
+    index: number; // ТОЛЬКО здесь есть index
 }
 
-// Обновленный тип для BasketView
 export interface IBasketView {
-    items: HTMLElement[]; // Теперь принимает готовые элементы, а не Product[]
+    items: HTMLElement[];
     total: number;
     valid: boolean;
 }
@@ -93,7 +77,18 @@ export interface ISuccessView {
     total: number;
 }
 
-// Типы для событий
+export interface IGallery {
+    items: HTMLElement[];
+}
+
+export interface IHeader {
+    counter: number;
+}
+
+export interface IModal {
+    content: HTMLElement;
+}
+
 export interface CardSelectEvent {
     id: string;
 }
@@ -118,10 +113,8 @@ export interface OrderPhoneEvent {
     phone: string;
 }
 
-// Дополнительные типы для TypeScript
 export type FormErrors = Partial<Record<keyof OrderForm, string>>;
 
-// Тип для данных формы заказа в модели
 export interface OrderFormData {
     payment: PaymentMethod;
     address: string;
@@ -129,7 +122,6 @@ export interface OrderFormData {
     phone: string;
 }
 
-// Тип для данных формы контактов
 export interface ContactsFormData {
     email: string;
     phone: string;
@@ -137,14 +129,12 @@ export interface ContactsFormData {
     errors: string[];
 }
 
-// Тип для BasketView данных
 export interface BasketViewData {
     items: HTMLElement[];
     total: number;
     valid: boolean;
 }
 
-// Тип для OrderFormView данных
 export interface OrderFormDataView {
     payment: PaymentMethod;
     address: string;
