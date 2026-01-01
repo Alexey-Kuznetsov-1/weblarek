@@ -51,7 +51,9 @@ async function main() {
     
     // Создаем View компоненты из шаблонов (ОДИН РАЗ!)
     const previewElement = cloneTemplate<HTMLElement>(previewTemplate);
-    const previewCard = new PreviewCard(previewElement, events);
+    const previewCard = new PreviewCard(previewElement, {
+        onClick: () => events.emit('preview:action')
+    });
     
     const basketView = new BasketView(cloneTemplate<HTMLElement>(basketTemplate), events);
     const orderFormView = new OrderFormView(cloneTemplate<HTMLElement>(orderTemplate), events);
@@ -72,7 +74,9 @@ async function main() {
         // Создаем готовые элементы товаров
         const basketItems = items.map((item, index) => {
             const itemElement = cloneTemplate<HTMLElement>(basketItemTemplate);
-            const basketItem = new BasketCard(itemElement, events);
+            const basketItem = new BasketCard(itemElement, {
+                onClick: () => events.emit('basket:remove', { id: item.id })
+            });
             
             return basketItem.render({
                 id: item.id,
@@ -95,7 +99,9 @@ async function main() {
         const products = catalog.getItems();
         const cards = products.map(product => {
             const cardElement = cloneTemplate<HTMLElement>(catalogTemplate);
-            const card = new CatalogCard(cardElement, events);
+            const card = new CatalogCard(cardElement, {
+                onClick: () => events.emit('card:select', { id: product.id })
+            });
             return card.render({ ...product });
         });
         
@@ -130,8 +136,8 @@ async function main() {
     });
     
     // Обработчик: Действие с товаром в предпросмотре
-    events.on('preview:action', (data: { id: string }) => {
-        const product = catalog.getProductById(data.id);
+    events.on('preview:action', () => {
+        const product = catalog.getPreview();
         if (product) {
             if (basket.hasItem(product.id)) {
                 basket.removeItem(product.id);
@@ -142,7 +148,7 @@ async function main() {
         }
     });
     
-    // Обработчик: Удаление товара из корзины (из BasketCard)
+    // Обработчик: Удаление товара из корзины
     events.on('basket:remove', (data: { id: string }) => {
         basket.removeItem(data.id);
     });
@@ -152,7 +158,7 @@ async function main() {
         const count = basket.getCount();
         header.counter = count;
         
-        // Обновляем представление корзины при каждом изменении
+        // Обновляем представление корзины
         updateBasketView();
     });
     

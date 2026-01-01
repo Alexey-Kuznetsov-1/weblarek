@@ -1,28 +1,23 @@
 import { Card } from './Card';
 import { ICard } from '../../types';
-import { EventEmitter } from '../base/Events';
+
+interface PreviewCardActions {
+    onClick: () => void;
+}
 
 export class PreviewCard extends Card<ICard> {
     private _button: HTMLElement | null = null;
     private _description: HTMLElement | null = null;
-    private _events: EventEmitter;
 
-    constructor(container: HTMLElement, events: EventEmitter) {
+    constructor(container: HTMLElement, actions: PreviewCardActions) {
         super(container);
-        this._events = events;
         
         const buttonElement = container.querySelector('.card__button');
         const descriptionElement = container.querySelector('.card__text');
         
         if (buttonElement) {
             this._button = buttonElement as HTMLElement;
-            this._button.addEventListener('click', () => {
-                const id = this.container.dataset.id;
-                if (id) {
-                    // Отправляем одно событие, презентер сам решит что делать
-                    this._events.emit('preview:action', { id });
-                }
-            });
+            this._button.addEventListener('click', actions.onClick);
         }
         
         if (descriptionElement) {
@@ -32,7 +27,6 @@ export class PreviewCard extends Card<ICard> {
 
     render(data: ICard): HTMLElement {
         super.render(data);
-        this.container.dataset.id = data.id;
         return this.container;
     }
 
